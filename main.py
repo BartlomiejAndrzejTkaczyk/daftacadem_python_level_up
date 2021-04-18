@@ -5,8 +5,11 @@ from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import hashlib
+import datetime
 
 app = FastAPI()
+app.counter_id = 1
+
 
 @app.get("/")
 def root():
@@ -43,17 +46,27 @@ def auth(password,password_hash):
     else:
         return JSONResponse(status_code=401)
 
+def addDayToDateYMD(date_str:str, days:int, seperator:str = '-'):
+    YMD = [int(ele) for ele in date_str.split(seperator)]
+    date = datetime.date(YMD[0],YMD[1],YMD[2])
+    date += datetime.timedelta(days=days)
+    return date
+
 class Item(BaseModel):
     name: str
     surname: str
 
+
 @app.post("/register")
 async def register(item: Item):
+    vaccination_date = addDayToDateYMD("2021-04-01",len(item.name + item.surname))
+    tday = datetime.date().today()
     content={
-        "id": 1,
+        "id": app.counter_id,
         "name": item.name,
         "surname": item.surname,
-        "register_date": "2021-04-01",
-        "vaccination_date": "2021-04-09"
+        "register_date": str(tday),
+        "vaccination_date": str(vaccination_date)
     }
+    app.counter_id+=1
     return JSONResponse(content=content,status_code=201)

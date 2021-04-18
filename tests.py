@@ -5,8 +5,16 @@ import requests
 from pydantic import BaseModel
 import json
 import pytest
+import datetime
 
 client = TestClient(app)
+
+class structurOfGlobalVar:
+    test_register_counter_id = 1
+
+gv = structurOfGlobalVar
+
+# test:
 
 def test_read_main():
     response = client.get("/")
@@ -59,17 +67,30 @@ def test_auth_hash():
     sha512_hash.update(bytes(password, encoding="ASCII"))
     assert sha512_hash.hexdigest() != password_hash
 
+def addDayToDateYMD(date_str:str, days:int, seperator:str = '-'):
+    YMD = [int(ele) for ele in date_str.split(seperator)]
+    date = datetime.date(YMD[0],YMD[1],YMD[2])
+    date += datetime.timedelta(days=days)
+    return date
+
+
 @pytest.mark.parametrize("name", ["Zenek", "Marek", "Alojzy"])
 @pytest.mark.parametrize("surname",["Nowak","Kowalczyk","Tkacz"])
 def test_register(name: str,surname: str):
     data = {"name": name,"surname": surname}
+    vaccination_date = addDayToDateYMD("2021-04-01",len(name+surname))
+    tday = datetime.date.today()
     respons = {
-        "id": 1,
+        "id": gv.test_register_counter_id,
         "name": name,
         "surname": surname,
-        "register_date": "2021-04-01",
-        "vaccination_date": "2021-04-09"
+        "register_date": str(tday),
+        "vaccination_date": str(vaccination_date)
     }
+    
+    gv.test_register_counter_id+=1
     r = client.post("/register", data=json.dumps(data))
+    
     assert r.json() == respons
     assert r.status_code == 201
+    
