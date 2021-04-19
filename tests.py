@@ -47,32 +47,34 @@ def test_method():
     assert response_delete.status_code == 200
 
 # sprawdzania szyforwania
+@pytest.mark.parametrize("password", ["abcd", "hgdaa", "hvsu", "jhuhujvds"])
+def test_auth_hash(password):
+    sha512_hash = hashlib.sha512()
+    sha512_hash.update(bytes(password, encoding="ASCII"))
+    password_hash = sha512_hash.hexdigest()
+    response = client.get(f"/auth?password={password}&password_hash={password_hash}")
+    assert response.status_code == 204
+    response = client.get(f"/auth?password={password}a&password_hash={password_hash}")
+    assert response.status_code == 401
+    
+def test_auth_for_empty():
+    password = ""
+    password_hash = ""
+    response = client.get(f"/auth?password={password}&password_hash={password_hash}")
+    assert response.status_code == 401
 
-def test_auth_hash():
-    password = ["abcd", "hgdaa", "hvsu", "jhuhujvds"]
-
-    for ele in password:
-        sha512_hash = hashlib.sha512()
-        sha512_hash.update(bytes(ele, encoding="ASCII"))
-        password_hash = sha512_hash.hexdigest()
-        response = client.get(f"/auth?password={ele}&password_hash={password_hash}")
-        assert response.status_code == 204
-        response = client.get(f"/auth?password={ele}a&password_hash={password_hash}")
-        assert response.status_code == 401
-
-    # test dla zadanych wartsci
+def test_auth_hash_predefin():
     password = "haslo"
     password_hash = "013c6889f799cd986a735118e1888727d1435f7f623d05d58c61bf2cd8b49ac90105e5786ceaabd62bbc27336153d0d316b2d13b36804080c44aa6198c533215"
     sha512_hash = hashlib.sha512()
     sha512_hash.update(bytes(password, encoding="ASCII"))
     assert sha512_hash.hexdigest() == password_hash
-
+    
     password = "haslo"
     password_hash = "f34ad4b3ae1e2cf33092e2abb60dc0444781c15d0e2e9ecdb37e4b14176a0164027b05900e09fa0f61a1882e0b89fbfa5dcfcc9765dd2ca4377e2c794837e091"
     sha512_hash = hashlib.sha512()
     sha512_hash.update(bytes(password, encoding="ASCII"))
     assert sha512_hash.hexdigest() != password_hash
-
 
 
 # sprawdzanie dodawania nowych pacjetow

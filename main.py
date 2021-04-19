@@ -39,6 +39,8 @@ def method():
 
 @app.get("/auth")
 def auth(password,password_hash):
+    if password == "" or password_hash == "":
+        return HTMLResponse(status_code=401)
     sha512_hash = hashlib.sha512()
     sha512_hash.update(bytes(password, encoding="ASCII"))
     m = sha512_hash.hexdigest()
