@@ -14,7 +14,7 @@ app.patients = []
 
 @app.get("/")
 def root():
-    return {'message': 'Hello world!'}
+    return {"message": "Hello world!"}
 
 @app.get("/method")
 def method():
@@ -43,9 +43,9 @@ def auth(password,password_hash):
     sha512_hash.update(bytes(password, encoding="ASCII"))
     m = sha512_hash.hexdigest()
     if m == password_hash:
-        return JSONResponse(status_code=204)
+        return HTMLResponse(status_code=204)
     else:
-        return JSONResponse(status_code=401)
+        return HTMLResponse(status_code=401)
 
 # ---------------
 
