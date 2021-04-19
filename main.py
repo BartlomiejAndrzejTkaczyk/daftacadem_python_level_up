@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 import requests
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 import hashlib
 import datetime
@@ -11,6 +12,11 @@ import json
 app = FastAPI()
 app.counter_id = 1
 app.patients = []
+
+def sha512(password):
+    sha512_hash = hashlib.sha512()
+    sha512_hash.update(bytes(password, encoding="ASCII"))
+    return sha512_hash.hexdigest()
 
 @app.get("/")
 def root():
@@ -37,14 +43,16 @@ def method():
 def method():
     return JSONResponse(content={"method": "POST"},status_code=201)
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(status_code=401)
+
 @app.get("/auth")
 def auth(password,password_hash):
     if password == "" or password_hash == "":
         return HTMLResponse(status_code=401)
-    sha512_hash = hashlib.sha512()
-    sha512_hash.update(bytes(password, encoding="ASCII"))
-    m = sha512_hash.hexdigest()
-    if m == password_hash:
+    
+    if sha512(password) == password_hash:
         return HTMLResponse(status_code=204)
     else:
         return HTMLResponse(status_code=401)
